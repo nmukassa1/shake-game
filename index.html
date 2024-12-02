@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shake to Earn Points</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      font-size: 2em;
+    }
+    p {
+      font-size: 1.2em;
+    }
+  </style>
+</head>
+<body>
+  <h1>Shake to Earn Points!</h1>
+  <p id="score">Score: 0</p>
+  <p id="status">Shake your phone to start earning points!</p>
+
+  <script>
+    let score = 0;
+    const threshold = 15; // Adjust sensitivity (higher = less sensitive)
+    let lastShakeTime = 0;
+
+    // Function to update the score
+    function updateScore() {
+      score++;
+      document.getElementById('score').textContent = `Score: ${score}`;
+    }
+
+    // Function to detect shakes
+    function handleMotionEvent(event) {
+      const acceleration = event.accelerationIncludingGravity;
+      const currentTime = Date.now();
+
+      // Calculate total acceleration
+      const totalAcceleration = Math.sqrt(
+        acceleration.x * acceleration.x +
+        acceleration.y * acceleration.y +
+        acceleration.z * acceleration.z
+      );
+
+      // Check if acceleration exceeds the threshold and avoid frequent triggers
+      if (totalAcceleration > threshold && (currentTime - lastShakeTime > 500)) {
+        lastShakeTime = currentTime;
+        updateScore();
+      }
+    }
+
+    // Request permission for iOS devices (iOS 13+ requires user permission)
+    function requestMotionPermission() {
+      if (typeof DeviceMotionEvent.requestPermission === 'function') {
+        DeviceMotionEvent.requestPermission()
+          .then(permissionState => {
+            if (permissionState === 'granted') {
+              window.addEventListener('devicemotion', handleMotionEvent);
+              document.getElementById('status').textContent = 'Permission granted! Shake your phone.';
+            } else {
+              document.getElementById('status').textContent = 'Permission denied. Enable motion access to play.';
+            }
+          })
+          .catch(console.error);
+      } else {
+        // Non-iOS devices
+        window.addEventListener('devicemotion', handleMotionEvent);
+        document.getElementById('status').textContent = 'Shake your phone to earn points!';
+      }
+    }
+
+    // Start listening for motion events
+    requestMotionPermission();
+  </script>
+</body>
+</html>
